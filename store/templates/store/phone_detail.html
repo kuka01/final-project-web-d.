@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% load moderator_tags %}
+{% block title %}{{ phone.name }} — PhoneHub{% endblock %}
+
+{% block content %}
+<div class="product-shell">
+    <div class="product-gallery">
+        <a href="{% url 'phone_list' %}" class="see-all">← Вернуться в каталог</a>
+        <div class="detail-media">
+            {% if phone.image_url %}
+                <img src="{{ phone.display_image_url }}" alt="{{ phone.name }}">
+            {% else %}
+                <span class="placeholder" style="font-size:4rem;">📱</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <section class="product-config">
+        <span class="phone-card__brand">{{ phone.brand }}{% if phone.category %} · {{ phone.category }}{% endif %}</span>
+        <h1>{{ phone.name }}</h1>
+        {% if detail_content %}
+            <p class="product-tagline">{{ detail_content.tagline }}</p>
+        {% endif %}
+
+        <div class="product-price-row">
+            <div>
+                <span class="muted-label">Цена</span>
+                <p class="price product-price">{{ phone.price }} ₸</p>
+            </div>
+            {% if phone.in_stock %}
+                <span class="badge badge-in">В наличии</span>
+            {% else %}
+                <span class="badge badge-out">Нет в наличии</span>
+            {% endif %}
+        </div>
+
+        {% if detail_content %}
+            <div class="config-group">
+                <div class="config-title">Цвет</div>
+                <div class="option-tile selected">{{ detail_content.color }}</div>
+            </div>
+
+            <div class="config-group">
+                <div class="config-title">Постоянная память</div>
+                <div class="option-tile selected">{{ detail_content.storage }}</div>
+            </div>
+
+            <div class="config-group">
+                <div class="config-title">Оперативная память</div>
+                <div class="option-tile selected">{{ detail_content.memory }}</div>
+            </div>
+        {% endif %}
+
+        <div class="shop-offers">
+            <span class="muted-label">Где купить</span>
+            {% for offer in shop_offers %}
+                <a class="shop-offer" href="{{ offer.url }}" target="_blank" rel="noopener">
+                    <span>
+                        <strong>{{ offer.store }}</strong>
+                        <small>{{ offer.note }}</small>
+                    </span>
+                    <b>{{ offer.price }}</b>
+                </a>
+            {% endfor %}
+        </div>
+
+        <div class="hero-actions">
+            <button class="like-btn" data-phone-id="{{ phone.pk }}" style="font-size:1.6rem;" aria-label="В избранное">♡</button>
+            {% if user|is_moderator %}
+                <a href="{% url 'phone_edit' phone.pk %}" class="btn btn-primary">Изменить</a>
+                <a href="{% url 'phone_delete' phone.pk %}" class="btn btn-danger">Удалить</a>
+            {% endif %}
+        </div>
+    </section>
+</div>
+
+{% if detail_content %}
+<section class="product-section">
+    <div>
+        <span class="muted-label">Overview</span>
+        <h2>Обзор</h2>
+        <p>{{ detail_content.overview }}</p>
+    </div>
+</section>
+
+<section class="product-section">
+    <span class="muted-label">Key features</span>
+    <h2>Ключевые особенности</h2>
+    <div class="feature-grid">
+        {% for highlight in detail_content.highlights %}
+            <div class="feature-card">{{ highlight }}</div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="product-section">
+    <span class="muted-label">Feature & specs</span>
+    <h2>Характеристики</h2>
+    <div class="spec-table">
+        {% for label, value in detail_content.specs %}
+            <div class="spec-row">
+                <span>{{ label }}</span>
+                <strong>{{ value }}</strong>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% else %}
+<section class="product-section">
+    <h2>Обзор</h2>
+    <p>{{ phone.description|default:"Описание пока не добавлено." }}</p>
+</section>
+{% endif %}
+
+<section class="reviews-panel">
+    <div class="reviews-summary">
+        <div>
+            <span class="muted-label">Отзывы</span>
+            <h2>Отзывы покупателей</h2>
+        </div>
+        <div class="average-rating">
+            {% if average_rating %}
+                <strong>{{ average_rating|floatformat:1 }}</strong>
+                <span>средняя оценка из 5</span>
+            {% else %}
+                <strong>—</strong>
+                <span>оценок пока нет</span>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if reviews %}
+        <div class="review-list">
+            {% for review in reviews %}
+                <article class="review-card">
+                    <div class="review-card__head">
+                        <div>
+                            <strong>{{ review.user.username }}</strong>
+                            <time datetime="{{ review.created_at|date:'c' }}">{{ review.created_at|date:"d.m.Y H:i" }}</time>
+                        </div>
+                        <div class="review-rating">
+                            <span>{{ review.rating }}/5</span>
+                            <span class="stars">{% for _ in review.rating|make_list %}★{% endfor %}</span>
+                        </div>
+                    </div>
+                    <p>{{ review.text }}</p>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="reviews-empty">Пока нет отзывов. Будьте первым!</p>
+    {% endif %}
+</section>
+
+<div class="form-card review-form-card" style="margin-left:0;">
+    <h3>Оставить отзыв</h3>
+    {% if user.is_authenticated %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="{{ review_form.rating.id_for_label }}">{{ review_form.rating.label }}</label>
+                {{ review_form.rating }}
+            </div>
+            <div class="form-group">
+                <label for="{{ review_form.text.id_for_label }}">{{ review_form.text.label }}</label>
+                {{ review_form.text }}
+                {% if review_form.text.errors %}<p class="form-errors">{{ review_form.text.errors|striptags }}</p>{% endif %}
+            </div>
+            <button type="submit" class="btn btn-primary">Отправить отзыв</button>
+        </form>
+    {% else %}
+        <p style="color:var(--mist);">
+            <a href="{% url 'login' %}">Войдите</a>, чтобы оставить отзыв.
+        </p>
+    {% endif %}
+</div>
+{% endblock %}

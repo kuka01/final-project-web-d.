@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Регистрация — PhoneHub{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <h2>Создать аккаунт</h2>
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<small style="color:var(--mist);">{{ field.help_text }}</small>{% endif %}
+                {% if field.errors %}<p class="form-errors">{{ field.errors|striptags }}</p>{% endif %}
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+    </form>
+    <p style="margin-top:16px; color:var(--mist);">
+        Уже есть аккаунт? <a href="{% url 'login' %}">Войти</a>
+    </p>
+</div>
+{% endblock %}

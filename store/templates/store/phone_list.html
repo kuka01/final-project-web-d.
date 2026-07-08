@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load moderator_tags %}
+{% block title %}Каталог телефонов — PhoneHub{% endblock %}
+
+{% block content %}
+<div class="section-head">
+    <h2>Каталог телефонов</h2>
+    {% if user|is_moderator %}
+        <a href="{% url 'phone_create' %}" class="btn btn-primary btn-sm">+ Добавить телефон</a>
+    {% endif %}
+</div>
+
+<form method="get" class="filter-bar" id="filter-form">
+    <div class="field">
+        {{ form.q.label_tag }}
+        {{ form.q }}
+    </div>
+    <div class="field">
+        {{ form.category.label_tag }}
+        {{ form.category }}
+    </div>
+    <div class="field">
+        {{ form.sort.label_tag }}
+        {{ form.sort }}
+    </div>
+    <button type="submit" class="btn btn-primary btn-sm">Применить</button>
+    <a href="{% url 'phone_list' %}" class="btn btn-ghost btn-sm">Сбросить</a>
+</form>
+
+{% if phones %}
+<div class="grid" id="phones-grid">
+    {% for phone in phones %}
+        <article class="phone-card" data-phone-id="{{ phone.pk }}" data-name="{{ phone.name }}" data-brand="{{ phone.brand }}">
+            <div class="phone-card__media">
+                {% if phone.image_url %}
+                    <img src="{{ phone.display_image_url }}" alt="{{ phone.name }}">
+                {% else %}
+                    <span class="placeholder">📱</span>
+                {% endif %}
+            </div>
+            <span class="phone-card__brand">{{ phone.brand }}{% if phone.category %} · {{ phone.category }}{% endif %}</span>
+            <h3><a href="{% url 'phone_detail' phone.pk %}">{{ phone.name }}</a></h3>
+            <div class="phone-card__footer">
+                <span class="price">{{ phone.price }} ₸</span>
+                {% if phone.in_stock %}
+                    <span class="badge badge-in">В наличии</span>
+                {% else %}
+                    <span class="badge badge-out">Нет в наличии</span>
+                {% endif %}
+            </div>
+            <div class="phone-card__footer">
+                <button class="like-btn" data-phone-id="{{ phone.pk }}" aria-label="В избранное">♡</button>
+            </div>
+        </article>
+    {% endfor %}
+</div>
+<div class="empty-state" id="empty-state" style="display:none;">
+    <p>Ничего не найдено по вашему запросу.</p>
+</div>
+{% else %}
+<div class="empty-state">
+    <p>Товары не найдены. Попробуйте изменить условия фильтра.</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Избранное — PhoneHub{% endblock %}
+
+{% block content %}
+<div class="section-head">
+    <h2>Избранное</h2>
+    <a href="{% url 'phone_list' %}" class="see-all">в каталог →</a>
+</div>
+
+<div class="grid favorites-grid" id="favorites-grid">
+    {% for phone in phones %}
+        <article class="phone-card favorite-item" data-phone-id="{{ phone.pk }}" data-name="{{ phone.name }}" data-brand="{{ phone.brand }}" style="display:none;">
+            <div class="phone-card__media">
+                {% if phone.image_url %}
+                    <img src="{{ phone.display_image_url }}" alt="{{ phone.name }}">
+                {% else %}
+                    <span class="placeholder">📱</span>
+                {% endif %}
+            </div>
+            <span class="phone-card__brand">{{ phone.brand }}{% if phone.category %} · {{ phone.category }}{% endif %}</span>
+            <h3><a href="{% url 'phone_detail' phone.pk %}">{{ phone.name }}</a></h3>
+            <div class="phone-card__footer">
+                <span class="price">{{ phone.price }} ₸</span>
+                <button class="like-btn" data-phone-id="{{ phone.pk }}" aria-label="Убрать из избранного">♡</button>
+            </div>
+        </article>
+    {% endfor %}
+</div>
+
+<div class="empty-state" id="favorites-empty">
+    <p>В избранном пока ничего нет. Добавьте смартфоны сердечком в каталоге.</p>
+</div>
+{% endblock %}

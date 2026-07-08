@@ -1,0 +1,393 @@
+{
+	"info": {
+		"_postman_id": "8b524c7e-e171-46bb-9f2e-4b2a47ff768e",
+		"name": "PhoneHub API Collection",
+		"description": "Коллекция запросов для тестирования REST API магазина телефонов PhoneHub. Содержит запросы для авторизации (получения токенов), просмотра товаров и категорий, полного CRUD для товаров и написания отзывов.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Аутентификация",
+			"item": [
+				{
+					"name": "Регистрация пользователя (API)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"api_user\",\n    \"email\": \"api_user@example.com\",\n    \"password\": \"password123\",\n    \"password_confirm\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/register/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"register",
+								""
+							]
+						},
+						"description": "Создает нового пользователя и возвращает его токен авторизации."
+					},
+					"response": []
+				},
+				{
+					"name": "Вход и Получение Токена",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.token) {",
+									"    pm.globals.set(\"token\", jsonData.token);",
+									"    console.log(\"Token has been set to: \" + jsonData.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"api_user\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/login/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"login",
+								""
+							]
+						},
+						"description": "Принимает username и password, возвращает Auth Token, который автоматически сохраняется в глобальную переменную `token`."
+					},
+					"response": []
+				},
+				{
+					"name": "Выход (Удаление Токена)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/logout/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"logout",
+								""
+							]
+						},
+						"description": "Отзывает и удаляет токен текущего пользователя из базы данных Django."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Категории",
+			"item": [
+				{
+					"name": "Список всех категорий",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/categories/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"categories",
+								""
+							]
+						},
+						"description": "Возвращает список всех доступных категорий товаров."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Товары (Phones)",
+			"item": [
+				{
+					"name": "Список товаров (с фильтрацией)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/phones/?q=Galaxy&category=&sort=-price",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"phones",
+								""
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "Galaxy",
+									"description": "Поиск по названию или бренду (необязательно)"
+								},
+								{
+									"key": "category",
+									"value": "",
+									"description": "Фильтр по ID категории (необязательно)"
+								},
+								{
+									"key": "sort",
+									"value": "-price",
+									"description": "Сортировка: price (дешевые), -price (дорогие), -created_at (новинки)"
+								}
+							]
+						},
+						"description": "Получает список всех телефонов. Можно передавать query-параметры `q`, `category` и `sort`."
+					},
+					"response": []
+				},
+				{
+					"name": "Детали товара",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/phones/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"phones",
+								"1",
+								""
+							]
+						},
+						"description": "Получает подробную информацию по ID телефона."
+					},
+					"response": []
+				},
+				{
+					"name": "Создать товар (Protected)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Token {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Galaxy S24 Ultra\",\n    \"brand\": \"Samsung\",\n    \"price\": \"120000.00\",\n    \"description\": \"Флагманский смартфон с поддержкой искусственного интеллекта Galaxy AI.\",\n    \"image_url\": \"https://images.unsplash.com/photo-1610945265064-0e34e5519bbf\",\n    \"category\": 1,\n    \"in_stock\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/phones/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"phones",
+								""
+							]
+						},
+						"description": "Добавляет новый телефон в каталог. Требуется заголовок авторизации `Authorization: Token <token>`."
+					},
+					"response": []
+				},
+				{
+					"name": "Редактировать товар (Protected)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Token {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Galaxy S24 Ultra AI Edition\",\n    \"brand\": \"Samsung\",\n    \"price\": \"125000.00\",\n    \"description\": \"Обновленный флагманский смартфон с поддержкой AI.\",\n    \"image_url\": \"https://images.unsplash.com/photo-1610945265064-0e34e5519bbf\",\n    \"category\": 1,\n    \"in_stock\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/phones/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"phones",
+								"1",
+								""
+							]
+						},
+						"description": "Полностью перезаписывает данные телефона по ID. Требуется токен авторизации."
+					},
+					"response": []
+				},
+				{
+					"name": "Удалить товар (Protected)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Token {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/phones/1/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"phones",
+								"1",
+								""
+							]
+						},
+						"description": "Удаляет товар по ID из базы данных. Требуется токен авторизации."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Отзывы (Reviews)",
+			"item": [
+				{
+					"name": "Получить отзывы телефона",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/phones/1/reviews/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"phones",
+								"1",
+								"reviews",
+								""
+							]
+						},
+						"description": "Возвращает отзывы для указанного телефона."
+					},
+					"response": []
+				},
+				{
+					"name": "Оставить отзыв (Protected)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Token {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"text\": \"Отличный экран и время автономной работы, рекомендую!\",\n    \"rating\": 5\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/phones/1/reviews/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"phones",
+								"1",
+								"reviews",
+								""
+							]
+						},
+						"description": "Позволяет авторизованному пользователю оставить отзыв к телефону. Поле `user` заполняется автоматически из токена."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000",
+			"type": "string"
+		}
+	]
+}

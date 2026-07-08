@@ -1,0 +1,60 @@
+{% load static moderator_tags %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PhoneHub — магазин телефонов{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="{% url 'home' %}" class="brand-logo">
+                <span class="notch-dot"></span> PhoneHub
+            </a>
+            <ul class="nav-links">
+                <li><a href="{% url 'home' %}">Главная</a></li>
+                <li><a href="{% url 'phone_list' %}">Каталог</a></li>
+                <li><a href="{% url 'favorites' %}">Избранное</a></li>
+            </ul>
+            <div class="nav-actions" style="display:flex; gap:10px; align-items:center;">
+                {% if user.is_authenticated %}
+                    <span class="mono" style="color:var(--mist); font-size:.85rem;">{{ user.username }}</span>
+                    <form action="{% url 'logout' %}" method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-ghost btn-sm">Выйти</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-ghost btn-sm">Войти</a>
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-sm">Регистрация</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %}">
+                        {{ message }}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            &copy; {% now "Y" %} PhoneHub — учебный проект.
+        </div>
+    </footer>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

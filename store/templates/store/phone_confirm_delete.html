@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Удалить {{ phone.name }} — PhoneHub{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <h2>Удалить товар?</h2>
+    <p style="color:var(--mist);">
+        Вы уверены, что хотите удалить <strong>«{{ phone.name }}»</strong>? Это действие необратимо.
+    </p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="hero-actions">
+            <button type="submit" class="btn btn-danger js-confirm-delete">Да, удалить</button>
+            <a href="{% url 'phone_detail' phone.pk %}" class="btn btn-ghost">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}PhoneHub — найди свой следующий телефон{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div>
+        <p class="hero-eyebrow">// каталог из {{ total_phones }} моделей</p>
+        <h1>Телефоны, подобранные <br>под вашу скорость жизни.</h1>
+        <p>От бюджетных моделей до флагманов — сравнивайте характеристики, читайте отзывы покупателей и оформляйте заказ в пару кликов.</p>
+        <div class="hero-actions">
+            <a href="{% url 'phone_list' %}" class="btn btn-primary">Смотреть каталог</a>
+            <a href="{% url 'favorites' %}" class="btn btn-ghost">Избранное</a>
+        </div>
+    </div>
+    <div class="phone-illustration">
+        <div class="screen-glow"></div>
+    </div>
+</section>
+
+<div class="spec-strip">Категории</div>
+
+{% if categories %}
+<div class="chip-row">
+    {% for category in categories %}
+        <a class="chip" href="{% url 'phone_list' %}?category={{ category.pk }}">{{ category.name }}</a>
+    {% endfor %}
+</div>
+{% else %}
+<p style="color:var(--mist);">Категории появятся здесь, как только backend-команда добавит данные.</p>
+{% endif %}
+
+<div class="section-head">
+    <h2>Популярные модели</h2>
+    <a href="{% url 'phone_list' %}" class="see-all">весь каталог →</a>
+</div>
+
+{% if latest_phones %}
+<div class="grid">
+    {% for phone in latest_phones %}
+        <article class="phone-card" data-phone-id="{{ phone.pk }}" data-name="{{ phone.name }}" data-brand="{{ phone.brand }}">
+            <div class="phone-card__media">
+                {% if phone.image_url %}
+                    <img src="{{ phone.display_image_url }}" alt="{{ phone.name }}">
+                {% else %}
+                    <span class="placeholder">📱</span>
+                {% endif %}
+            </div>
+            <span class="phone-card__brand">{{ phone.brand }}</span>
+            <h3><a href="{% url 'phone_detail' phone.pk %}">{{ phone.name }}</a></h3>
+            <div class="phone-card__footer">
+                <span class="price">{{ phone.price }} ₸</span>
+                <button class="like-btn" data-phone-id="{{ phone.pk }}" aria-label="В избранное">♡</button>
+            </div>
+        </article>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <p>Пока нет ни одного товара. Как только Human 2 заполнит базу данных, здесь появятся телефоны.</p>
+</div>
+{% endif %}
+{% endblock %}
